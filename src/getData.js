@@ -30,18 +30,24 @@ export async function fetchScheduleData() {
  * @returns {Array<Object>} An array of game objects, each containing information like link, gamePk, gameDate, and status.
  */
 export function processRawScheduleData(data) {
-    let processedData = []
+  let processedData = [];
   data.dates.forEach((dateObj) => {
-    const gamesArray = dateObj.games.map((game) => {
-      return {
-        gameDate: game.gameDate,
-        teams: game.teams,
-        status: game.status,
-      };
+    dateObj.games.forEach((game) => {
+      if (
+        game.teams.away.team.name === "Philadelphia Phillies" ||
+        game.teams.home.team.name === "Philadelphia Phillies" ||
+        game.teams.away.team.name === "Houston Astros" ||
+        game.teams.home.team.name === "Houston Astros"
+      ) {
+        processedData.push({
+          gameDate: game.gameDate,
+          teams: game.teams,
+          status: game.status,
+        });
+      }
     });
-    processedData.push(...gamesArray)
   });
-  return processedData
+  return processedData;
 }
 /**
  * Fetches live game data from the API endpoint.
@@ -62,19 +68,19 @@ export function processRawGameData(rawData) {
   return {
     home: {
       ...teams.home,
-      score: scores.home.runs
+      score: scores.home.runs,
     },
     away: {
       ...teams.away,
-      score: scores.away.runs
-    }
+      score: scores.away.runs,
+    },
+    status: rawData.gameData.status,
   };
 }
 
 export async function getLiveGameData(link) {
   const data = await fetchGameData(link);
   const processedData = processRawGameData(data);
-    console.log(processedData)
   return processedData;
 }
 
@@ -85,8 +91,5 @@ export async function getLiveGameData(link) {
 export async function getScheduleData() {
   const data = await fetchScheduleData();
   const processedData = processRawScheduleData(data);
-
   return processedData;
 }
-
-console.log(getLiveGameData('/api/v1.1/game/745133/feed/live'));
